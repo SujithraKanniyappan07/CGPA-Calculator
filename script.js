@@ -63,6 +63,7 @@ function showSemester(sem) {
     let html = `
         <h2>Semester ${sem}</h2>
 
+        <div class="table-responsive">
         <table class="subjects-table">
             <tr>
                 <th>S.No</th>
@@ -98,6 +99,7 @@ function showSemester(sem) {
 
     html += `
         </table>
+        </div>
 
         <br><br>
 
@@ -285,7 +287,7 @@ function displayExtraCourses(sem) {
             <h3 style="margin-top:25px">
                 Temporary Courses
             </h3>
-
+            <div class="table-responsive">
             <table class="subjects-table">
 
                 <tr>
@@ -332,6 +334,7 @@ function displayExtraCourses(sem) {
 
         html += `
             </table>
+            </div>
         `;
 
     }
