@@ -121,17 +121,15 @@ p{
 }
 
 .subjects-table tr:hover{
-
+ 
     background:#f5f9ff;
 
 }
 .stats-container{
-
-    display:flex;
-    justify-content:space-between;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
     gap:20px;
     margin-top:20px;
-
 }
 
 .stat-card{
@@ -563,4 +561,107 @@ p{
 
     transform:scale(1.08);
 
+}
+.table-responsive{
+    width:100%;
+    overflow-x:auto;
+}
+/* ==========================
+   MOBILE RESPONSIVE
+========================== */
+@media (max-width: 768px) {
+
+    body{
+        padding:15px;
+    }
+
+    h1{
+        font-size:34px;
+        line-height:1.2;
+        margin-bottom:8px;
+    }
+
+    p{
+        font-size:16px;
+    }
+
+    /* Help button */
+    .help-btn{
+        position:fixed;
+        top:15px;
+        right:15px;
+        width:48px;
+        height:48px;
+        z-index:999;
+    }
+
+    /* Semester buttons */
+    .semester-tabs{
+        gap:10px;
+    }
+
+    .semester-tabs button{
+        width:130px;
+        font-size:15px;
+    }
+
+    /* Main white card */
+    .content{
+        padding:18px;
+        overflow-x:auto;
+    }
+
+    /* Tables */
+    .subjects-table{
+        min-width:600px;
+    }
+
+    /* GPA cards */
+    .stats-container{
+        display:flex;
+        flex-direction:column;
+        gap:15px;
+    }
+
+    .stat-card{
+        width:100%;
+    }
+
+    /* Dashboard */
+    .summary-grid{
+        grid-template-columns:repeat(2,1fr);
+        gap:12px;
+    }
+
+    .semester-card{
+        padding:14px;
+    }
+
+    /* CGPA Card */
+    .cgpa-card{
+        padding:25px;
+    }
+
+    .cgpa-title{
+        font-size:32px;
+    }
+
+    .cgpa-number{
+        font-size:45px;
+    }
+
+    /* Add Course form */
+    .course-row{
+        flex-direction:column;
+    }
+
+    .input-group{
+        width:100%;
+    }
+
+    .save-course-btn,
+    .calculate-btn,
+    .add-course-btn{
+        width:100%;
+    }
 }
