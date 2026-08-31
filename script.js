@@ -6,7 +6,9 @@
 // - Save grades
 // - Calculate GPA & CGPA
 // - Manage temporary courses
+// - Calculate CGPA using weighted semester GPA
 // ======================================================
+
 
 // ------------------------------------------------------
 // Global Variables
@@ -20,7 +22,12 @@ let extraCourses = {};
 
 // Stores selected grades for each semester
 let semesterGrades = {};
+
+
+// ------------------------------------------------------
 // Reusable Grade Options
+// ------------------------------------------------------
+
 const gradeOptions = `
     <option value="">Select Grade</option>
     <option value="10">S</option>
@@ -37,6 +44,7 @@ const gradeOptions = `
 // ------------------------------------------------------
 // Display Semester
 // ------------------------------------------------------
+
 function showSemester(sem) {
 
     // Highlight active semester button
@@ -47,6 +55,7 @@ function showSemester(sem) {
     });
 
     buttons[sem - 1].classList.add("active");
+
 
     // Check whether semester data exists
     if (!semesters[sem]) {
@@ -59,12 +68,15 @@ function showSemester(sem) {
         return;
     }
 
+
     // Create semester table
     let html = `
         <h2>Semester ${sem}</h2>
 
         <div class="table-responsive">
+
         <table class="subjects-table">
+
             <tr>
                 <th>S.No</th>
                 <th>Subject</th>
@@ -73,11 +85,15 @@ function showSemester(sem) {
             </tr>
     `;
 
+
     semesters[sem].forEach((subject, index) => {
 
         html += `
             <tr>
-                <td class="center">${index + 1}</td>
+
+                <td class="center">
+                    ${index + 1}
+                </td>
 
                 <td class="left">
                     ${subject.name}
@@ -88,17 +104,26 @@ function showSemester(sem) {
                 </td>
 
                 <td class="center">
-                    <select class="grade" onchange="saveGrades(${sem})">
+
+                    <select
+                        class="grade"
+                        onchange="saveGrades(${sem})">
+
                         ${gradeOptions}
+
                     </select>
+
                 </td>
+
             </tr>
         `;
 
     });
 
+
     html += `
         </table>
+
         </div>
 
         <br><br>
@@ -126,9 +151,13 @@ function showSemester(sem) {
         <div id="result"></div>
     `;
 
+
     document.getElementById("content").innerHTML = html;
 
+
+    // Display temporary courses
     displayExtraCourses(sem);
+
 
     // Restore previously selected grades
     if (semesterGrades[sem]) {
@@ -136,26 +165,87 @@ function showSemester(sem) {
         const grades = document.querySelectorAll(".grade");
 
         grades.forEach((grade, index) => {
+
             grade.value = semesterGrades[sem][index];
+
         });
 
     }
+
+
+    // Restore previously calculated GPA
+    if (semesterResults[sem]) {
+
+        const result = semesterResults[sem];
+
+        document.getElementById("result").innerHTML = `
+
+            <div class="stats-container">
+
+                <div class="stat-card">
+
+                    <div class="stat-label">
+                        🎯 GPA
+                    </div>
+
+                    <div class="stat-value">
+                        ${result.gpa.toFixed(2)}
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-label">
+                        📚 Credits
+                    </div>
+
+                    <div class="stat-value">
+                        ${result.credits}
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-label">
+                        ⭐ Grade Points
+                    </div>
+
+                    <div class="stat-value">
+                        ${result.totalGradePoints}
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+    }
+
 }
 
 
-// Load Semester 1 by default
+// ------------------------------------------------------
+// Load Semester 1 by Default
+// ------------------------------------------------------
+
 showSemester(1);
 
 
 // ------------------------------------------------------
 // Save Selected Grades
 // ------------------------------------------------------
+
 function saveGrades(sem) {
 
     semesterGrades[sem] = [];
 
     document.querySelectorAll(".grade").forEach(grade => {
+
         semesterGrades[sem].push(grade.value);
+
     });
 
 }
@@ -164,6 +254,7 @@ function saveGrades(sem) {
 // ------------------------------------------------------
 // Show Temporary Course Form
 // ------------------------------------------------------
+
 function showAddCourseForm(sem) {
 
     let html = `
@@ -175,15 +266,19 @@ function showAddCourseForm(sem) {
             <div class="course-row">
 
                 <div class="input-group">
+
                     <label>Course Name</label>
 
                     <input
                         type="text"
                         id="courseName"
                         placeholder="Enter Course Name">
+
                 </div>
 
+
                 <div class="input-group">
+
                     <label>Credits</label>
 
                     <input
@@ -192,16 +287,24 @@ function showAddCourseForm(sem) {
                         min="1"
                         max="10"
                         placeholder="Credits">
+
                 </div>
 
+
                 <div class="input-group">
+
                     <label>Grade</label>
+
                     <select id="courseGrade">
+
                         ${gradeOptions}
-                    </select>                    
+
+                    </select>
+
                 </div>
 
             </div>
+
 
             <button
                 onclick="addCourse(${sem})"
@@ -211,65 +314,101 @@ function showAddCourseForm(sem) {
 
             </button>
 
+
             <div id="extraCourseList"></div>
 
         </div>
+
     `;
+
 
     document.getElementById("courseForm").innerHTML = html;
 
 }
+
+
 // ------------------------------------------------------
 // Add Temporary Course
 // ------------------------------------------------------
+
 function addCourse(sem) {
 
-    const name = document.getElementById("courseName").value.trim();
+    const name =
+        document.getElementById("courseName").value.trim();
 
-    const credits = Number(
-        document.getElementById("courseCredits").value
-    );
 
-    const grade = Number(
-        document.getElementById("courseGrade").value
-    );
+    const credits =
+        Number(
+            document.getElementById("courseCredits").value
+        );
+
+
+    const gradeSelect =
+        document.getElementById("courseGrade");
+
+
+    const grade =
+        Number(gradeSelect.value);
+
 
     const gradeLetter =
-        document.getElementById("courseGrade").options[
-            document.getElementById("courseGrade").selectedIndex
+        gradeSelect.options[
+            gradeSelect.selectedIndex
         ].text;
+
 
     // Validation
     if (
         name === "" ||
         credits <= 0 ||
         isNaN(credits) ||
-        isNaN(grade)
+        gradeSelect.value === ""
     ) {
+
         alert("Please fill all details.");
+
         return;
     }
 
+
     // Create semester array if it doesn't exist
     if (!extraCourses[sem]) {
+
         extraCourses[sem] = [];
+
     }
+
 
     // Store course
     extraCourses[sem].push({
+
         name: name,
+
         credits: credits,
+
         grade: grade,
+
         gradeLetter: gradeLetter
+
     });
+
 
     // Refresh list
     displayExtraCourses(sem);
 
+
     // Clear form
     document.getElementById("courseName").value = "";
+
     document.getElementById("courseCredits").value = "";
+
     document.getElementById("courseGrade").value = "";
+
+
+    // Clear previously calculated semester result
+    delete semesterResults[sem];
+
+    updateSummary();
 
 }
 
@@ -277,30 +416,46 @@ function addCourse(sem) {
 // ------------------------------------------------------
 // Display Temporary Courses
 // ------------------------------------------------------
+
 function displayExtraCourses(sem) {
 
     let html = "";
 
-    if (extraCourses[sem] && extraCourses[sem].length > 0) {
+
+    if (
+        extraCourses[sem] &&
+        extraCourses[sem].length > 0
+    ) {
 
         html += `
+
             <h3 style="margin-top:25px">
                 Temporary Courses
             </h3>
+
             <div class="table-responsive">
+
             <table class="subjects-table">
 
                 <tr>
+
                     <th>Course</th>
+
                     <th>Credits</th>
+
                     <th>Grade</th>
+
                     <th>Action</th>
+
                 </tr>
+
         `;
+
 
         extraCourses[sem].forEach((course, index) => {
 
             html += `
+
                 <tr>
 
                     <td class="left">
@@ -328,18 +483,32 @@ function displayExtraCourses(sem) {
                     </td>
 
                 </tr>
+
             `;
 
         });
 
+
         html += `
+
             </table>
+
             </div>
+
         `;
 
     }
 
-    document.getElementById("extraCourseList").innerHTML = html;
+
+    const list =
+        document.getElementById("extraCourseList");
+
+
+    if (list) {
+
+        list.innerHTML = html;
+
+    }
 
 }
 
@@ -347,11 +516,20 @@ function displayExtraCourses(sem) {
 // ------------------------------------------------------
 // Delete Temporary Course
 // ------------------------------------------------------
+
 function deleteCourse(sem, index) {
 
     extraCourses[sem].splice(index, 1);
 
+
+    // Clear previously calculated GPA
+    delete semesterResults[sem];
+
+
     displayExtraCourses(sem);
+
+
+    updateSummary();
 
 }
 
@@ -359,39 +537,62 @@ function deleteCourse(sem, index) {
 // ------------------------------------------------------
 // Calculate Semester GPA
 // ------------------------------------------------------
+
 function calculateSemester(sem) {
 
     let totalCredits = 0;
+
     let totalGradePoints = 0;
 
-    const grades = document.querySelectorAll(".grade");
+
+    const grades =
+        document.querySelectorAll(".grade");
+
 
     // Save grades
     semesterGrades[sem] = [];
 
+
     grades.forEach(grade => {
-        semesterGrades[sem].push(grade.value);
+
+        semesterGrades[sem].push(
+            grade.value
+        );
+
     });
+
 
     // Ensure every subject has a grade
     for (let grade of grades) {
 
         if (grade.value === "") {
+
             return null;
+
         }
 
     }
 
+
     // Calculate grade points
     grades.forEach((grade, index) => {
 
-        const gradePoint = Number(grade.value);
-        const credit = semesters[sem][index].credits;
+        const gradePoint =
+            Number(grade.value);
+
+
+        const credit =
+            semesters[sem][index].credits;
+
 
         totalCredits += credit;
-        totalGradePoints += gradePoint * credit;
+
+
+        totalGradePoints +=
+            gradePoint * credit;
 
     });
+
 
     // Include temporary courses
     if (extraCourses[sem]) {
@@ -400,6 +601,7 @@ function calculateSemester(sem) {
 
             totalCredits += course.credits;
 
+
             totalGradePoints +=
                 course.grade * course.credits;
 
@@ -407,56 +609,127 @@ function calculateSemester(sem) {
 
     }
 
+
+    // Calculate exact GPA first
+    const exactGPA =
+        totalGradePoints / totalCredits;
+
+
     return {
+
         credits: totalCredits,
+
         gradePoints: totalGradePoints,
-        gpa: (totalGradePoints / totalCredits).toFixed(2)
+
+        gpa: exactGPA
+
     };
 
 }
+
+
 // ------------------------------------------------------
 // Calculate GPA
 // ------------------------------------------------------
+
 function calculateGPA(sem) {
 
-    const result = calculateSemester(sem);
+    const result =
+        calculateSemester(sem);
+
 
     if (result == null) {
-        alert("Please select a grade for all subjects.");
+
+        alert(
+            "Please select a grade for all subjects."
+        );
+
         return;
+
     }
 
-    const totalCredits = result.credits;
-    const totalGradePoints = result.gradePoints;
-    const gpa = result.gpa;
 
-    // Store semester result for CGPA calculation
+    const totalCredits =
+        result.credits;
+
+
+    const totalGradePoints =
+        result.gradePoints;
+
+
+    const exactGPA =
+        result.gpa;
+
+
+    // --------------------------------------------------
+    // IMPORTANT:
+    // Round semester GPA to exactly 2 decimal places
+    // BEFORE using it for CGPA calculation.
+    // --------------------------------------------------
+
+    const roundedGPA =
+        Number(exactGPA.toFixed(2));
+
+
+    // Store the ROUNDED semester GPA
     semesterResults[sem] = {
+
+        gpa: roundedGPA,
+
         totalGradePoints: totalGradePoints,
+
         credits: totalCredits
+
     };
 
-    // Display GPA Result
+
+    // Display GPA rounded to 2 decimal places
     document.getElementById("result").innerHTML = `
+
         <div class="stats-container">
 
             <div class="stat-card">
-                <div class="stat-label">🎯 GPA</div>
-                <div class="stat-value">${gpa}</div>
+
+                <div class="stat-label">
+                    🎯 GPA
+                </div>
+
+                <div class="stat-value">
+                    ${roundedGPA.toFixed(2)}
+                </div>
+
             </div>
 
-            <div class="stat-card">
-                <div class="stat-label">📚 Credits</div>
-                <div class="stat-value">${totalCredits}</div>
-            </div>
 
             <div class="stat-card">
-                <div class="stat-label">⭐ Grade Points</div>
-                <div class="stat-value">${totalGradePoints}</div>
+
+                <div class="stat-label">
+                    📚 Credits
+                </div>
+
+                <div class="stat-value">
+                    ${totalCredits}
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-label">
+                    ⭐ Grade Points
+                </div>
+
+                <div class="stat-value">
+                    ${totalGradePoints}
+                </div>
+
             </div>
 
         </div>
+
     `;
+
 
     // Refresh CGPA Dashboard
     updateSummary();
@@ -467,111 +740,194 @@ function calculateGPA(sem) {
 // ------------------------------------------------------
 // Update GPA Dashboard / CGPA Summary
 // ------------------------------------------------------
+
 function updateSummary() {
 
     let html = `
+
         <div class="summary-card">
 
             <h2>📊 GPA Dashboard</h2>
 
             <div class="summary-grid">
+
     `;
 
-    let grandGradePoints = 0;
+
+    // --------------------------------------------------
+    // Variables for CGPA Calculation
+    // --------------------------------------------------
+
+    let weightedGPASum = 0;
+
     let grandCredits = 0;
 
-    // Display all semesters
+
+    // --------------------------------------------------
+    // Display All Semesters
+    // --------------------------------------------------
+
     for (let i = 1; i <= 8; i++) {
 
         if (semesterResults[i]) {
 
-            const semesterGPA = (
-                semesterResults[i].totalGradePoints /
-                semesterResults[i].credits
-            ).toFixed(2);
+            const semesterGPA =
+                semesterResults[i].gpa;
+
+
+            const semesterCredits =
+                semesterResults[i].credits;
+
+
+            // ------------------------------------------
+            // CGPA Calculation
+            //
+            // Uses the ROUNDED semester GPA
+            //
+            // GPA × Semester Credits
+            // ------------------------------------------
+
+            weightedGPASum +=
+                semesterGPA * semesterCredits;
+
+
+            grandCredits +=
+                semesterCredits;
+
 
             html += `
+
                 <div class="semester-card">
 
-                    <h3>Semester ${i}</h3>
+                    <h3>
+                        Semester ${i}
+                    </h3>
 
                     <div class="semester-gpa">
-                        ${semesterGPA}
+
+                        ${semesterGPA.toFixed(2)}
+
                     </div>
 
                     <p>
-                        ${semesterResults[i].credits} Credits
+
+                        ${semesterCredits} Credits
+
                     </p>
 
                 </div>
+
             `;
 
-            grandGradePoints += semesterResults[i].totalGradePoints;
-            grandCredits += semesterResults[i].credits;
 
         } else {
 
             html += `
+
                 <div class="semester-card pending">
 
-                    <h3>Semester ${i}</h3>
+                    <h3>
+                        Semester ${i}
+                    </h3>
 
                     <div class="semester-gpa">
+
                         --
+
                     </div>
 
-                    <p>Pending</p>
+                    <p>
+                        Pending
+                    </p>
 
                 </div>
+
             `;
 
         }
 
     }
 
+
     // Close summary grid
     html += `
+
             </div>
+
     `;
 
-    // Overall CGPA
+
+    // --------------------------------------------------
+    // Calculate Overall CGPA
+    // --------------------------------------------------
+
     if (grandCredits > 0) {
 
-        const cgpa = (
-            grandGradePoints / grandCredits
-        ).toFixed(2);
+        // Calculate exact CGPA first
+        const exactCGPA =
+            weightedGPASum / grandCredits;
+
+
+        // Round ONLY the final CGPA
+        const cgpa =
+            exactCGPA.toFixed(2);
+
 
         html += `
+
             <div class="cgpa-card">
 
                 <div class="cgpa-item">
+
                     <div class="cgpa-title">
+
                         🎓 Overall CGPA
+
                     </div>
+
                 </div>
 
+
                 <div class="cgpa-item">
+
                     <div class="cgpa-number">
+
                         ${cgpa}
+
                     </div>
+
                 </div>
 
+
                 <div class="cgpa-item">
+
                     <div>
+
                         Total Credits Completed :
-                        <strong>${grandCredits}</strong>
+
+                        <strong>
+                            ${grandCredits}
+                        </strong>
+
                     </div>
+
                 </div>
 
             </div>
+
         `;
 
     }
 
+
     html += `
+
         </div>
+
     `;
 
-    document.getElementById("summary").innerHTML = html;
+
+    document.getElementById("summary").innerHTML =
+        html;
 
 }
